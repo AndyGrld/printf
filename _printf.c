@@ -5,12 +5,18 @@ int _printf(const char *format, ...)
 {
 	va_list all_args;
 	va_start(all_args, format);
+
+	int count = 0;
+
+	while (*format != '\0')
+	{
+		if (*format == "%")
+		{
+			format++;
+		}
+		count++;
+		format++;
+	}
 	vprintf(format, all_args);
 	va_end(all_args);
-}
-
-int main(void)
-{
-	_printf("Hello, %s, i am %d", "World", 19);
-	return (0);
 }
