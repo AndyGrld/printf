@@ -1,65 +1,47 @@
-#include <stdio.h>
 #include "main.h"
-
-void flush_buffer(char buffer[], int *buffer_index);
+#include <limits.h>
+#include <stdio.h>
 
 /**
- * _printf - printf function
- * @format: Format string
- * Return: Number of printed characters
+ * printf - displays output of statement
+ * @format: format string with the characters
+ * Return: length of output string
  */
 int _printf(const char *format, ...)
 {
-	int i, chars_printed = 0, total_printed_chars = 0;
-	int flags, width, precision, size, buffer_index = 0;
-	va_list args_list;
-	char output_buffer[BUFF_SIZE];
+	int (*print_func)(va_list, flags_t *);
+	const char *format_ptr;
+	va_list args;
+	flags_t flags = {0, 0, 0};
 
-	if (format == NULL)
+	register int count = 0;
+
+	va_start(args, format);
+	if (!format || (format[0] == '%' && !format[1]))
 		return (-1);
-	va_start(args_list, format);
-
-	for (i = 0; format && format[i] != '\0'; i++)
+	if (format[0] == '%' && format[1] == ' ' && !format[2])
+		return (-1);
+	for (format_ptr = format; *format_ptr; format_ptr++)
 	{
-		if (format[i] != '%')
+		if (*format_ptr == '%')
 		{
-			output_buffer[buffer_index++] = format[i];
-			if (buffer_index == BUFF_SIZE)
-				flush_buffer(output_buffer, &buffer_index);
-			chars_printed++;
+			format_ptr++;
+			if (*format_ptr == '%')
+			{
+				count += _putchar('%');
+				continue;
+			}
+			while (get_flag(*format_ptr, &flags))
+				format_ptr++;
+			print_func = get_print(*format_ptr);
+			count += (print_func)
+						 ? print_func(args, &flags)
+						 : printf("%%%c", *format_ptr);
 		}
 		else
-		{
-			flush_buffer(output_buffer, &buffer_index);
-			flags = get_flags(format, &i);
-			width = get_width(format, &i, args_list);
-			precision = get_precision(format, &i, args_list);
-			size = get_size(format, &i);
-			++i;
-			chars_printed = handle_format(format, &i, args_list, output_buffer,
-										  flags, width, precision, size);
-			if (chars_printed == -1)
-				return (-1);
-			total_printed_chars += chars_printed;
-		}
+			count += _putchar(*format_ptr);
 	}
-
-	flush_buffer(output_buffer, &buffer_index);
-
-	va_end(args_list);
-
-	return (total_printed_chars);
-}
-
-/**
- * flush_buffer - Prints the contents of the buffer if it exists
- * @buffer: Array of characters
- * @buffer_index: index to add next character
- */
-void flush_buffer(char buffer[], int *buffer_index)
-{
-	if (*buffer_index > 0)
-		write(1, &buffer[0], *buffer_index);
-
-	*buffer_index = 0;
+	_putchar(-1);
+	va_end(args);
+	return (count);
 }
