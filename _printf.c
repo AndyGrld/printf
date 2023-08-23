@@ -1,78 +1,65 @@
 #include <stdio.h>
-#include <stdarg.h>
+#include "main.h"
 
-int handle_format(const char *format, va_list *args, int *count)
-{
-	format++;			   // Skip the '%'
-	int format_length = 2; // Start with 2 because '%' plus the specifier character
+void flush_buffer(char buffer[], int *buffer_index);
 
-	switch (*format)
-	{
-	case 'c':
-	{
-		char ch = va_arg(*args, int);
-		putchar(ch);
-		(*count)++;
-		break;
-	}
-	case 's':
-	{
-		char *str = va_arg(*args, char *);
-		while (*str != '\0')
-		{
-			putchar(*str);
-			str++;
-			(*count)++;
-		}
-		break;
-	}
-	case '%':
-	{
-		putchar('%');
-		(*count)++;
-		break;
-	}
-	default:
-		format_length = 1; // Set back to 1 if no specifier was handled
-		break;
-	}
-
-	return format_length;
-}
-
+/**
+ * _printf - printf function
+ * @format: Format string
+ * Return: Number of printed characters
+ */
 int _printf(const char *format, ...)
 {
-	va_list all_args;
-	va_start(all_args, format);
-	int count = 0;
+	int i, chars_printed = 0, total_printed_chars = 0;
+	int flags, width, precision, size, buffer_index = 0;
+	va_list args_list;
+	char output_buffer[BUFF_SIZE];
 
-	while (*format != '\0')
+	if (format == NULL)
+		return (-1);
+	va_start(args_list, format);
+
+	for (i = 0; format && format[i] != '\0'; i++)
 	{
-		if (*format == '%')
+		if (format[i] != '%')
 		{
-			int format_length = handle_format(format, &all_args, &count);
-			format += format_length;
+			output_buffer[buffer_index++] = format[i];
+			if (buffer_index == BUFF_SIZE)
+				flush_buffer(output_buffer, &buffer_index);
+			chars_printed++;
 		}
 		else
 		{
-			putchar(*format);
-			count++;
-			format++;
+			flush_buffer(output_buffer, &buffer_index);
+			flags = get_flags(format, &i);
+			width = get_width(format, &i, args_list);
+			precision = get_precision(format, &i, args_list);
+			size = get_size(format, &i);
+			++i;
+			chars_printed = handle_format(format, &i, args_list, output_buffer,
+										  flags, width, precision, size);
+			if (chars_printed == -1)
+				return (-1);
+			total_printed_chars += chars_printed;
 		}
 	}
 
-	va_end(all_args);
+	flush_buffer(output_buffer, &buffer_index);
 
-	return count;
+	va_end(args_list);
+
+	return (total_printed_chars);
 }
 
-int main(void)
+/**
+ * flush_buffer - Prints the contents of the buffer if it exists
+ * @buffer: Array of characters
+ * @buffer_index: index to add next character
+ */
+void flush_buffer(char buffer[], int *buffer_index)
 {
-	int printed = _printf("Hello, %s! The answer is %d%c.\n", "Alice", 42, '%');
-	printf("\nCharacters printed: %d\n", printed);
+	if (*buffer_index > 0)
+		write(1, &buffer[0], *buffer_index);
 
-	printed = _printf("Let's print a %c and a %s.\n", 'Z', "string");
-	printf("\nCharacters printed: %d\n", printed);
-
-	return 0;
+	*buffer_index = 0;
 }
