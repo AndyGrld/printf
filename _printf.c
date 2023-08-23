@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 /**
- * printf - displays output of statement
+ * _printf - displays output of statement
  * @format: format string with the characters
  * Return: length of output string
  */

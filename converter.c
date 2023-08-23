@@ -18,8 +18,7 @@ char *convert(unsigned long int number, int base, int lowercase)
 						 : "0123456789ABCDEF";
 	pointer = &buffer[49];
 	*pointer = '\0';
-	do
-	{
+	do {
 		*--pointer = representation[number % base];
 		number /= base;
 	} while (number != 0);

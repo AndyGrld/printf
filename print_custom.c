@@ -6,8 +6,7 @@
  * printed this way: \x, followed by the ASCII code
  * value in hexadecimal (uppercase - always 2 characters)
  * @arg_list: va_list arguments from _printf
- * @format_flags: pointer to the struct flags that determines
- * if a flag is passed to _printf
+ * @format_flags: determines if a flag is passed to _printf
  * Return: number of characters printed
  */
 int print_bigS(va_list arg_list, flags_t *format_flags)
@@ -82,7 +81,8 @@ int print_rot13(va_list arg_list, flags_t *format_flags)
 
 	for (j = 0; string[j]; j++)
 	{
-		if (string[j] < 'A' || (string[j] > 'Z' && string[j] < 'a') || string[j] > 'z')
+		if (string[j] < 'A' || (string[j] > 'Z' && string[j] < 'a')
+				|| string[j] > 'z')
 			_putchar(string[j]);
 		else
 		{
